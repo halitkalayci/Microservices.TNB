@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: dev
   application:
     name: identity.service
   datasource:
@@ -22,3 +24,4 @@ server:
 app:
   crypto:
     aeskeyBase64: HYFxrt3ZasXfohnd/CK60jUa74X+R0RYfEEw2CaKmjE=
+

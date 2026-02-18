@@ -2,6 +2,7 @@ package com.example.identity.service.entity;
 
 import jakarta.persistence.*;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -24,6 +25,12 @@ public class User {
 
     @Column(name = "tckn_hashed", nullable = false, unique = true, length = 64)
     private String tcknHashed;
+
+    @Column(name = "password_reset_token", length = 64)
+    private String passwordResetToken;
+
+    @Column(name = "reset_token_valid_until")
+    private Instant resetTokenValidUntil;
 
     public User() {
     }
@@ -73,5 +80,21 @@ public class User {
 
     public void setTcknHashed(String tcknHashed) {
         this.tcknHashed = tcknHashed;
+    }
+
+    public String getPasswordResetToken() {
+        return passwordResetToken;
+    }
+
+    public void setPasswordResetToken(String passwordResetToken) {
+        this.passwordResetToken = passwordResetToken;
+    }
+
+    public Instant getResetTokenValidUntil() {
+        return resetTokenValidUntil;
+    }
+
+    public void setResetTokenValidUntil(Instant resetTokenValidUntil) {
+        this.resetTokenValidUntil = resetTokenValidUntil;
     }
 }

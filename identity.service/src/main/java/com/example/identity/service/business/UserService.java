@@ -3,6 +3,7 @@ package com.example.identity.service.business;
 import com.example.identity.service.dto.UserResponse;
 import com.example.identity.service.entity.User;
 import com.example.identity.service.exception.DuplicateTcknException;
+import com.example.identity.service.exception.InvalidResetTokenException;
 import com.example.identity.service.repository.UserRepository;
 import com.example.identity.service.util.EncryptionHelper;
 
@@ -16,6 +17,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
@@ -37,11 +41,16 @@ public class UserService {
             user.setPassword(rs.getString("password"));
             user.setTckn(rs.getString("tckn"));
             user.setTcknHashed(rs.getString("tckn_hashed"));
+            user.setPasswordResetToken(rs.getString("password_reset_token"));
+            var ts = rs.getTimestamp("reset_token_valid_until");
+            user.setResetTokenValidUntil(ts != null ? ts.toInstant() : null);
             return user;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     };
+
+    private static final int RESET_TOKEN_VALID_MINUTES = 15;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EncryptionHelper encryptionHelper, JdbcTemplate jdbcTemplate) {
         this.userRepository = userRepository;
@@ -122,5 +131,39 @@ public class UserService {
                         decryptTckn(user.getTckn())
                 ))
                 .toList();
+    }
+
+    /**
+     * Kullanıcı adına göre şifre sıfırlama token'ı oluşturur ve 15 dakika geçerli olacak şekilde kaydeder.
+     * Kullanıcı yoksa sessizce çıkılır (güvenlik için kullanıcı var/yok bilgisi verilmez).
+     */
+    public void requestPasswordReset(String username) {
+        userRepository.findByUsername(username).ifPresent(user -> {
+            String token = generateResetToken();
+            user.setPasswordResetToken(token);
+            user.setResetTokenValidUntil(Instant.now().plus(RESET_TOKEN_VALID_MINUTES, ChronoUnit.MINUTES));
+            userRepository.save(user);
+        });
+    }
+
+    /**
+     * Geçerli token ve süre içinde istek gelirse kullanıcının şifresini günceller; token'ı temizler.
+     */
+    public void confirmPasswordReset(String token, String newPassword) {
+        User user = userRepository.findByPasswordResetToken(token)
+                .orElseThrow(InvalidResetTokenException::new);
+        if (user.getResetTokenValidUntil() == null || user.getResetTokenValidUntil().isBefore(Instant.now())) {
+            throw new InvalidResetTokenException();
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordResetToken(null);
+        user.setResetTokenValidUntil(null);
+        userRepository.save(user);
+    }
+
+    private String generateResetToken() {
+        byte[] bytes = new byte[32];
+        new SecureRandom().nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }
