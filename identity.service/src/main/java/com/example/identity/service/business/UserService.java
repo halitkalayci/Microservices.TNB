@@ -27,7 +27,7 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(password);
         String encryptedTckn = encryptTckn(tckn);
         System.out.println("Şifrelenmiş TCKN: " + encryptedTckn);
-        //userRepository.save(new User(username, encodedPassword, encryptedTckn));
+        userRepository.save(new User(username, encodedPassword, encryptedTckn));
     }
 
     private String encryptTckn(String tckn) {
