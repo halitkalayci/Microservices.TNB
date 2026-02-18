@@ -24,4 +24,7 @@ server:
 app:
   crypto:
     aeskeyBase64: HYFxrt3ZasXfohnd/CK60jUa74X+R0RYfEEw2CaKmjE=
+  rate-limit:
+    capacity: 25          # Maksimum token (kova kapasitesi)
+    refill-per-minute: 5  # Dakikada dolan token sayısı (leaky bucket)
 
