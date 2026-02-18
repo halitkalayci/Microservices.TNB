@@ -1,6 +1,9 @@
 package com.example.identity.service.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
+
 import java.util.UUID;
 
 @Entity
@@ -15,10 +18,14 @@ public class User {
     private String username;
 
     @Column(nullable = false)
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "Şifre en az 8 karakter olmalıdır ve en az bir büyük harf, bir küçük harf, bir sayı ve bir özel karakter içermelidir")
     private String password;
 
     @Column(nullable = false, unique = true, length = 11)
     private String tckn;
+
+    @Column(nullable = false)
+    private String otpToken; 
 
     public User() {
     }
