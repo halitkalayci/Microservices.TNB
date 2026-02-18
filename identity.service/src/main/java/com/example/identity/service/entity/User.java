@@ -1,7 +1,6 @@
 package com.example.identity.service.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
 
 import java.util.UUID;
 
@@ -17,19 +16,23 @@ public class User {
     private String username;
 
     @Column(nullable = false)
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "Şifre en az 8 karakter olmalıdır ve en az bir büyük harf, bir küçük harf, bir sayı ve bir özel karakter içermelidir")
+    //@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "Şifre en az 8 karakter olmalıdır ve en az bir büyük harf, bir küçük harf, bir sayı ve bir özel karakter içermelidir")
     private String password;
 
-    @Column(nullable = false, unique = true, length = 512)
+    @Column(nullable = false, length = 512)
     private String tckn;
-    
+
+    @Column(name = "tckn_hashed", nullable = false, unique = true, length = 64)
+    private String tcknHashed;
+
     public User() {
     }
 
-    public User(String username, String password, String tckn) {
+    public User(String username, String password, String tckn, String tcknHashed) {
         this.username = username;
         this.password = password;
         this.tckn = tckn;
+        this.tcknHashed = tcknHashed;
     }
 
     public UUID getId() {
@@ -62,5 +65,13 @@ public class User {
 
     public void setTckn(String tckn) {
         this.tckn = tckn;
+    }
+
+    public String getTcknHashed() {
+        return tcknHashed;
+    }
+
+    public void setTcknHashed(String tcknHashed) {
+        this.tcknHashed = tcknHashed;
     }
 }
